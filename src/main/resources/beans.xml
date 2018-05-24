@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:cache="http://www.springframework.org/schema/cache"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache.xsd">
+
+    <!--启动注解  进行guava cache 管理-->
+    <cache:annotation-driven cache-manager="cacheManager" proxy-target-class="true"/>
+    <bean id="cacheManager" class="org.springframework.cache.support.CompositeCacheManager">
+        <property name="cacheManagers">
+            <list>
+                <!--将guava cache交于spring管理  如果要实现redis  也可以加在这里-->
+                <ref bean="guavaCacheManager"/>
+            </list>
+        </property>
+        <property name="fallbackToNoOpCache" value="true"/>
+    </bean>
+
+    <!--配置guava cache需要缓存的key  以及建立方式-->
+    <bean id="guavaCacheManager" class="com.tianhe.springlianxi.GuavaCacheManager">
+        <property name="configMap">
+            <map key-type="java.lang.String" value-type="com.google.common.cache.CacheBuilder">
+                <entry key="indexReptileKeyValue" value-ref="defaultCacheBuilder"/>
+            </map>
+        </property>
+    </bean>
+    <!--设置guava cache缓存策略  生存期为24小时  最大100个缓存数-->
+    <bean id="defaultCacheBuilder"
+          class="com.google.common.cache.CacheBuilder"
+          factory-method="from">
+        <constructor-arg value="maximumSize=100,expireAfterWrite=24h,refreshAfterWrite=5m"/>
+    </bean>
+
+    <bean id="demo" class="com.tianhe.springlianxi.Demo"/>
+
+</beans>
